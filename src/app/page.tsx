@@ -1,69 +1,163 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { Flag, Plug2, Globe, UserCircle2, ArrowRight, CheckCircle2 } from "lucide-react";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAppSettings } from "@/hooks/use-app-settings";
+import { useFlagCatalog } from "@/hooks/use-flag-catalog";
+import { useProviderHealth } from "@/hooks/use-provider-health";
+import { PERSONA_MAP } from "@/types/persona";
+import { PROVIDERS } from "@/types/provider";
+import { FLAG_CATEGORY_LABELS } from "@/lib/feature-flags/catalog";
+
+export default function HomePage() {
+  const { persona, provider, environment } = useAppSettings();
+  const flags = useFlagCatalog();
+  const health = useProviderHealth();
+  const providerMeta = PROVIDERS.find((p) => p.id === provider)!;
+
+  const enabledCount = flags.filter((f) => f.enabled).length;
+  const overriddenCount = flags.filter((f) => f.overridden).length;
+
+  const byCategory = Object.entries(FLAG_CATEGORY_LABELS).map(([key, label]) => ({
+    key,
+    label,
+    count: flags.filter((f) => f.definition.category === key).length,
+  }));
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Nexus Enterprise</h1>
+        <p className="text-sm text-muted-foreground">
+          Feature Management Evaluation Portal — comparing LaunchDarkly, Unleash, and
+          Flagsmith through a shared abstraction layer.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader>
+            <CardDescription className="flex items-center gap-1.5">
+              <Plug2 className="size-3.5" /> Active Provider
+            </CardDescription>
+            <CardTitle className="text-lg">{providerMeta.name}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Badge variant={health.configured ? "success" : "secondary"}>
+              {health.configured ? "Live connection" : "Simulated data"}
+            </Badge>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardDescription className="flex items-center gap-1.5">
+              <UserCircle2 className="size-3.5" /> Active Persona
+            </CardDescription>
+            <CardTitle className="text-lg">{PERSONA_MAP[persona].label}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              {PERSONA_MAP[persona].description}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardDescription className="flex items-center gap-1.5">
+              <Globe className="size-3.5" /> Active Environment
+            </CardDescription>
+            <CardTitle className="text-lg capitalize">{environment}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              Latency {health.latencyMs}ms · Cache {health.cacheStatus}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardDescription className="flex items-center gap-1.5">
+              <Flag className="size-3.5" /> Flag Statistics
+            </CardDescription>
+            <CardTitle className="text-lg">
+              {enabledCount}/{flags.length} active
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              {overriddenCount} manually overridden
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Flag Catalog Breakdown</CardTitle>
+          <CardDescription>~30 flags across 7 evaluation categories</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {byCategory.map((c) => (
+            <div key={c.key} className="rounded-lg border border-border p-3">
+              <p className="text-2xl font-semibold">{c.count}</p>
+              <p className="text-xs text-muted-foreground">{c.label}</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle2 className="size-4 text-success" /> Get started
+            </CardTitle>
+            <CardDescription>
+              Explore the Feature Flag Dashboard to see every flag&apos;s live value, or
+              jump into the Nexus Enterprise modules to see flags in action.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex gap-2">
+            <Button asChild size="sm">
+              <Link href="/flags">
+                Feature Flag Dashboard <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/nexus/dashboard">Open Nexus Enterprise</Link>
+            </Button>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Vendor Comparison</CardTitle>
+            <CardDescription>
+              Compare rollout, targeting, variant and configuration support side-by-side
+              across LaunchDarkly, Unleash, and Flagsmith.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/vendor-comparison">
+                View comparison matrix <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
