@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, RotateCcw } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useFlag } from "@/hooks/use-flag";
 import { useFlagOverridesStore } from "@/store/flag-overrides-store";
 import { FLAG_MAP } from "@/lib/feature-flags/catalog";
@@ -20,6 +21,8 @@ import { cn } from "@/lib/utils";
 function KillSwitchCard({ flagKey, effectLabel }: { flagKey: string; effectLabel: string }) {
   const engaged = useFlag(flagKey);
   const setOverride = useFlagOverridesStore((s) => s.setOverride);
+  const clearOverride = useFlagOverridesStore((s) => s.clearOverride);
+  const isOverridden = useFlagOverridesStore((s) => s.overrides[flagKey]?.enabled !== undefined);
   const definition = FLAG_MAP[flagKey];
 
   return (
@@ -34,13 +37,30 @@ function KillSwitchCard({ flagKey, effectLabel }: { flagKey: string; effectLabel
         </div>
         <CardDescription>{definition.description}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-3">
         {engaged ? (
           <Badge variant="destructive" className="gap-1">
             <AlertTriangle className="size-3" /> {effectLabel}
           </Badge>
         ) : (
           <Badge variant="success">Systems normal</Badge>
+        )}
+        {isOverridden ? (
+          <div className="flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning/10 px-2.5 py-1.5">
+            <span className="text-xs text-muted-foreground">
+              Forced locally — the real provider&apos;s value is being ignored.
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => clearOverride(flagKey)}
+              className="shrink-0"
+            >
+              <RotateCcw className="size-3.5" /> Use provider value
+            </Button>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Reflecting the active provider&apos;s value.</p>
         )}
       </CardContent>
     </Card>

@@ -2,15 +2,16 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
-import { useFeatureFlagProvider } from "@/context/feature-flag-context";
+import { useProviderVersion } from "@/context/feature-flag-context";
 import { useSettingsStore } from "@/store/settings-store";
 import { useFlagOverridesStore } from "@/store/flag-overrides-store";
 import { useAnalyticsStore } from "@/store/analytics-store";
 import { FLAG_MAP } from "@/lib/feature-flags/catalog";
+import { featureFlagService } from "@/lib/feature-flags/feature-flag-service";
 
-/** Evaluates a boolean flag through the active provider and records a `flag_evaluated` event. */
+/** Evaluates a boolean flag through OpenFeature and records a `flag_evaluated` event. */
 export function useFlag(flagKey: string): boolean {
-  const provider = useFeatureFlagProvider();
+  const version = useProviderVersion();
   const persona = useSettingsStore((s) => s.persona);
   const environment = useSettingsStore((s) => s.environment);
   const providerId = useSettingsStore((s) => s.provider);
@@ -18,9 +19,9 @@ export function useFlag(flagKey: string): boolean {
   const trackEvent = useAnalyticsStore((s) => s.trackEvent);
 
   const value = useMemo(
-    () => provider.getFlag(flagKey),
+    () => featureFlagService.getBooleanFlag(flagKey),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [provider, flagKey, persona, environment, overrides]
+    [flagKey, persona, environment, overrides, version]
   );
 
   const lastTracked = useRef<string | null>(null);

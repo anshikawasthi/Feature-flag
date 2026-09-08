@@ -3,6 +3,7 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { FlagTable } from "@/components/feature-flags/flag-table";
 import { DependencyGraph } from "@/components/feature-flags/dependency-graph";
+import { RolloutBucketExplainer } from "@/components/feature-flags/rollout-bucket-explainer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Card,
@@ -24,8 +25,9 @@ export default function FlagsPage() {
           <TabsTrigger value="all">All Flags</TabsTrigger>
           <TabsTrigger value="dependencies">Dependency Graph</TabsTrigger>
         </TabsList>
-        <TabsContent value="all" className="mt-4">
+        <TabsContent value="all" className="mt-4 flex flex-col gap-6">
           <FlagTable />
+          <RolloutBucketExplainer />
         </TabsContent>
         <TabsContent value="dependencies" className="mt-4">
           <Card>

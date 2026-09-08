@@ -2,15 +2,16 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
-import { useFeatureFlagProvider } from "@/context/feature-flag-context";
+import { useProviderVersion } from "@/context/feature-flag-context";
 import { useSettingsStore } from "@/store/settings-store";
 import { useFlagOverridesStore } from "@/store/flag-overrides-store";
 import { useAnalyticsStore } from "@/store/analytics-store";
 import { FLAG_MAP } from "@/lib/feature-flags/catalog";
+import { featureFlagService } from "@/lib/feature-flags/feature-flag-service";
 
 /** Evaluates a multivariate/experiment flag's active variant and records a `variant_selected` event. */
 export function useVariant(flagKey: string): string {
-  const provider = useFeatureFlagProvider();
+  const version = useProviderVersion();
   const persona = useSettingsStore((s) => s.persona);
   const environment = useSettingsStore((s) => s.environment);
   const providerId = useSettingsStore((s) => s.provider);
@@ -18,9 +19,9 @@ export function useVariant(flagKey: string): string {
   const trackEvent = useAnalyticsStore((s) => s.trackEvent);
 
   const variant = useMemo(
-    () => provider.getVariant(flagKey),
+    () => featureFlagService.getVariant(flagKey),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [provider, flagKey, persona, environment, overrides]
+    [flagKey, persona, environment, overrides, version]
   );
 
   const lastTracked = useRef<string | null>(null);

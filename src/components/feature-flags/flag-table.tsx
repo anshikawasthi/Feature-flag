@@ -32,6 +32,9 @@ import {
 import { FlagCategoryBadge } from "./flag-category-badge";
 import { FlagOverrideEditor } from "./flag-override-editor";
 import { useFlagCatalog, type EvaluatedFlag } from "@/hooks/use-flag-catalog";
+import { useRemoteFlagKeys } from "@/hooks/use-remote-flag-keys";
+import { useAppSettings } from "@/hooks/use-app-settings";
+import { PROVIDERS } from "@/types/provider";
 import { FLAG_CATEGORY_LABELS } from "@/lib/feature-flags/catalog";
 import type { FlagCategory } from "@/types/flag";
 
@@ -124,6 +127,11 @@ export function FlagTable() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<"all" | FlagCategory>("all");
   const [grouped, setGrouped] = useState(true);
+  const [onlyRemoteConfigured, setOnlyRemoteConfigured] = useState(true);
+  const remoteFlagKeys = useRemoteFlagKeys();
+  const { provider: providerId } = useAppSettings();
+  const providerName = PROVIDERS.find((p) => p.id === providerId)?.name ?? providerId;
+  const supportsIntrospection = remoteFlagKeys !== null;
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -133,9 +141,11 @@ export function FlagTable() {
         f.definition.key.toLowerCase().includes(term) ||
         f.definition.name.toLowerCase().includes(term);
       const matchesCategory = category === "all" || f.definition.category === category;
-      return matchesSearch && matchesCategory;
+      const matchesRemote =
+        !onlyRemoteConfigured || !supportsIntrospection || remoteFlagKeys!.includes(f.definition.key);
+      return matchesSearch && matchesCategory && matchesRemote;
     });
-  }, [flags, search, category]);
+  }, [flags, search, category, onlyRemoteConfigured, supportsIntrospection, remoteFlagKeys]);
 
   const groups = useMemo(() => {
     const map = new Map<FlagCategory, EvaluatedFlag[]>();
@@ -175,7 +185,27 @@ export function FlagTable() {
         <Button variant="outline" size="sm" onClick={() => setGrouped((g) => !g)}>
           {grouped ? "Ungroup" : "Group by category"}
         </Button>
+        <Button
+          variant={onlyRemoteConfigured ? "default" : "outline"}
+          size="sm"
+          disabled={!supportsIntrospection}
+          title={
+            supportsIntrospection
+              ? undefined
+              : `${providerName} doesn't support flag introspection — unable to filter`
+          }
+          onClick={() => setOnlyRemoteConfigured((v) => !v)}
+        >
+          Only in {providerName}
+        </Button>
       </div>
+
+      {onlyRemoteConfigured && !supportsIntrospection && (
+        <p className="text-xs text-muted-foreground">
+          {providerName} doesn&apos;t support remote flag introspection (or isn&apos;t connected) —
+          showing all catalog flags instead.
+        </p>
+      )}
 
       <p className="text-xs text-muted-foreground">
         {filtered.length} of {flags.length} flags shown

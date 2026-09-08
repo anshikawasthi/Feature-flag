@@ -21,11 +21,20 @@ import { useModuleAccessTracking } from "@/hooks/use-module-access";
 export default function NexusAiAssistantPage() {
   useModuleAccessTracking("ai-assistant", "AI Assistant module accessed");
   const aiEnabled = useFlag("enable_ai_assistant");
+  const dependencyEnabled = useFlag("enable_advanced_search");
   const killed = useFlag("disable_ai_system");
   const [message, setMessage] = useState("");
   const [history, setHistory] = useState<string[]>([]);
 
   const available = aiEnabled && !killed;
+
+  const statusLabel = available
+    ? "Online"
+    : killed
+      ? "Killed via disable_ai_system"
+      : !dependencyEnabled
+        ? "Disabled (dependency: enable_advanced_search is off)"
+        : "Disabled (enable_ai_assistant is off)";
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
@@ -34,7 +43,7 @@ export default function NexusAiAssistantPage() {
         description="Nexus AI Assistant — depends on enable_advanced_search and can be killed instantly."
         actions={
           <Badge variant={available ? "success" : "destructive"}>
-            {available ? "Online" : killed ? "Killed via disable_ai_system" : "Disabled (dependency)"}
+            {statusLabel}
           </Badge>
         }
       />

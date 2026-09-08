@@ -1,7 +1,7 @@
 import type { ConfigValue, FlagDefinition } from "@/types/flag";
 import type { Environment } from "@/types/environment";
 import type { Persona } from "@/types/persona";
-import type { FlagOverride } from "./types";
+import type { FlagOverride } from "./override-types";
 
 export interface EvalState {
   persona: Persona;

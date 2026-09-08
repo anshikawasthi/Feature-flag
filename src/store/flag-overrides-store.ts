@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { FlagOverride, FlagOverridesMap } from "@/lib/feature-flags/types";
+import type { FlagOverride, FlagOverridesMap } from "@/lib/feature-flags/override-types";
 
 interface FlagOverridesState {
   overrides: FlagOverridesMap;

@@ -21,6 +21,7 @@ import {
   HeartPulse,
   ScrollText,
   Settings,
+  BookOpen,
 } from "lucide-react";
 
 export interface NavItem {
@@ -45,6 +46,7 @@ export const nexusNavItems: NavItem[] = [
 
 export const evaluationNavItems: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/how-openfeature-works", label: "How OpenFeature Works", icon: BookOpen },
   { href: "/flags", label: "Feature Flag Dashboard", icon: Flag },
   { href: "/vendor-comparison", label: "Vendor Comparison", icon: GitCompare },
   { href: "/experiments", label: "Experimentation Lab", icon: FlaskConical },

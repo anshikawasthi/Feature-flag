@@ -2,11 +2,12 @@
 
 import { useMemo } from "react";
 
-import { useFeatureFlagProvider } from "@/context/feature-flag-context";
+import { useProviderVersion } from "@/context/feature-flag-context";
 import { useSettingsStore } from "@/store/settings-store";
 import { useFlagOverridesStore } from "@/store/flag-overrides-store";
 import { FLAG_CATALOG } from "@/lib/feature-flags/catalog";
 import type { FlagDefinition } from "@/types/flag";
+import { featureFlagService } from "@/lib/feature-flags/feature-flag-service";
 
 export interface EvaluatedFlag {
   definition: FlagDefinition;
@@ -16,9 +17,9 @@ export interface EvaluatedFlag {
   overridden: boolean;
 }
 
-/** Evaluates the entire flag catalog through the active provider for table/dashboard views. */
+/** Evaluates the entire flag catalog through OpenFeature for table/dashboard views. */
 export function useFlagCatalog(): EvaluatedFlag[] {
-  const provider = useFeatureFlagProvider();
+  const version = useProviderVersion();
   const persona = useSettingsStore((s) => s.persona);
   const environment = useSettingsStore((s) => s.environment);
   const overrides = useFlagOverridesStore((s) => s.overrides);
@@ -31,13 +32,13 @@ export function useFlagCatalog(): EvaluatedFlag[] {
         const isConfig = definition.type === "config";
         return {
           definition,
-          enabled: isConfig ? true : provider.getFlag(definition.key),
-          variant: isMultivariate ? provider.getVariant(definition.key) : null,
-          configValue: isConfig ? provider.getConfig(definition.key) : null,
+          enabled: isConfig ? true : featureFlagService.getBooleanFlag(definition.key),
+          variant: isMultivariate ? featureFlagService.getVariant(definition.key) : null,
+          configValue: isConfig ? featureFlagService.getConfigValue(definition.key) : null,
           overridden: Boolean(overrides[definition.key]),
         };
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [provider, persona, environment, overrides]
+    [persona, environment, overrides, version]
   );
 }
